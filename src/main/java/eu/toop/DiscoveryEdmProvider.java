@@ -1,18 +1,14 @@
 package eu.toop;
 
-import eu.toop.model.complex.ServiceInformationTypeWrapper;
-import eu.toop.model.entity.CountryAwareServiceMetadataTypeWrapper;
-import eu.toop.model.entity.DocTypeIdentifierWrapper;
-import eu.toop.model.entity.ParticipantIdentifierTypeWrapper;
+import eu.toop.model.entity.ODATAParticipantIdentifier;
+import eu.toop.model.entity.ODATAParticipantIdentifiers;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryEdmProvider.class);
@@ -25,72 +21,21 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
   public static final String CONTAINER_NAME = "Container";
   public static final FullQualifiedName CONTAINER_FQN = new FullQualifiedName(NAMESPACE, CONTAINER_NAME);
 
-  /*
-  EntityTypes (as they have a KEY that resolves to them)
-  CountryAwareServiceMetadata
-  ParticipantIdentifier
-  DocumentIdentifier
-   */
-  /*
-  Complex Types: (they don't have a key)
-  ServiceMetadata
-  ServiceInformation
-  ServiceMetadataList
-   */
-
-
-/*
-<sim:ServiceMetadataList xmlns:bdxr="http://docs.oasis-open.org/bdxr/ns/SMP/2016/05"
-                         xmlns:sim="http://eu/toop/simulator/schema/discovery">
-
-
-  <sim:CountryAwareServiceMetadata countryCode="GQ">
-      <bdxr:ServiceInformation>
-        <bdxr:ParticipantIdentifier scheme="iso6523-actorid-upis">9999:elonia-dev</bdxr:ParticipantIdentifier>
-        <bdxr:DocumentIdentifier scheme="toop-doctypeid-qns">
-          urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40
-        </bdxr:DocumentIdentifier>
-        <!-- the rest is not included as it is smp related -->
-      </bdxr:ServiceInformation>
-  </sim:CountryAwareServiceMetadata>
-    ..
-</sim:ServiceMetadataList>
- */
-
-  private static final Map<FullQualifiedName, CsdlEntityType> csdlEntityMap = new HashMap<>();
-  private static final Map<FullQualifiedName, CsdlComplexType> csdlComplexTypeMap = new HashMap<>();
-  private static final String ES_SERVICE_METADATA_LIST = "ServiceMetadataList";
-
-  static {
-    csdlEntityMap.put(CountryAwareServiceMetadataTypeWrapper.FQN, new CountryAwareServiceMetadataTypeWrapper());
-    csdlEntityMap.put(ParticipantIdentifierTypeWrapper.FQN, new ParticipantIdentifierTypeWrapper());
-    csdlEntityMap.put(DocTypeIdentifierWrapper.FQN, new DocTypeIdentifierWrapper());
-
-    csdlComplexTypeMap.put(ServiceInformationTypeWrapper.FQN, new ServiceInformationTypeWrapper());
-
-  }
-
   @Override
   public CsdlEntityType getEntityType(final FullQualifiedName entityTypeName) {
-    if (entityTypeName != null) {
-      LOGGER.debug("ENTITY: " + entityTypeName.getFullQualifiedNameAsString());
-      return csdlEntityMap.get(entityTypeName);
+    LOGGER.debug("ENTITY: " + entityTypeName.getFullQualifiedNameAsString());
+    if (ODATAParticipantIdentifier.FQN.equals(entityTypeName)) {
+      return new ODATAParticipantIdentifier();
     }
 
     return null;
   }
 
-  @Override
-  public CsdlComplexType getComplexType(final FullQualifiedName complexTypeName) {
-    if (complexTypeName != null) {
-      LOGGER.debug("CTTYPE:" + complexTypeName.getFullQualifiedNameAsString());
-      CsdlComplexType csdlComplexType = csdlComplexTypeMap.get(complexTypeName);
-      LOGGER.debug("  \t" + csdlComplexType);
-      return csdlComplexType;
-    }
-
-    return null;
-  }
+  // we don't have a complex type, no need to override this
+  //@Override
+  //public CsdlComplexType getComplexType(final FullQualifiedName complexTypeName) {
+  //  return null;
+  //}
 
 
   @Override
@@ -100,16 +45,9 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     else
       LOGGER.debug("ENTITY SET: null" + " " + entitySetName);
 
-    if (CONTAINER_FQN.equals(entityContainer)) {
-      if (ES_SERVICE_METADATA_LIST.equals(entitySetName)) {
-        return new CsdlEntitySet()
-            .setName(ES_SERVICE_METADATA_LIST)
-            .setType(CountryAwareServiceMetadataTypeWrapper.FQN);
-      } else {
-        LOGGER.debug("Unfortunately returning null " + ES_SERVICE_METADATA_LIST);
-      }
-    } else {
-      LOGGER.debug("Unfortunately returning null");
+    if (CONTAINER_FQN.equals(entityContainer) &&
+        ODATAParticipantIdentifiers.ET_NAME.equals(entitySetName)) {
+        return ODATAParticipantIdentifiers.getInstance();
     }
 
     return null;
@@ -122,13 +60,12 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     schema.setNamespace(NAMESPACE);
     // EntityTypes
     List<CsdlEntityType> entityTypes = new ArrayList<CsdlEntityType>();
-    entityTypes.addAll(csdlEntityMap.values());
+    entityTypes.add(new ODATAParticipantIdentifier());
+
     schema.setEntityTypes(entityTypes);
 
-    // ComplexTypes
-    List<CsdlComplexType> complexTypes = new ArrayList<CsdlComplexType>();
-    complexTypes.addAll(csdlComplexTypeMap.values());
-    schema.setComplexTypes(complexTypes);
+    //// ComplexTypes
+    // we don't have complex types for now
 
     // EntityContainer
     schema.setEntityContainer(getEntityContainer());
@@ -145,9 +82,7 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     // EntitySets
     List<CsdlEntitySet> entitySets = new ArrayList<CsdlEntitySet>();
     container.setEntitySets(entitySets);
-    entitySets.add(new CsdlEntitySet()
-        .setName(ES_SERVICE_METADATA_LIST)
-        .setType(CountryAwareServiceMetadataTypeWrapper.FQN));
+    entitySets.add(ODATAParticipantIdentifiers.getInstance());
     return container;
   }
 

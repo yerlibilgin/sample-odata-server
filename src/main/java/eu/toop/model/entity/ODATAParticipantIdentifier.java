@@ -1,10 +1,12 @@
 package eu.toop.model.entity;
 
-import eu.toop.model.complex.ToProperty;
+import com.helger.peppolid.IParticipantIdentifier;
+import eu.toop.DiscoveryEdmProvider;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.CsdlEntityType;
 import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
 import org.apache.olingo.commons.api.edm.provider.CsdlPropertyRef;
@@ -15,59 +17,66 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class IdentifierTypeWrapper extends CsdlEntityType implements ToProperty {
-  public IdentifierTypeWrapper() {
-    //setKey(Arrays.asList(
-    //    //new CsdlPropertyRef().setName("scheme"),
-    //    new CsdlPropertyRef().setName("value")
-    //));
+public class ODATAParticipantIdentifier extends CsdlEntityType {
+  public static final String ET_NAME = "ParticipantIdentifier";
+
+  public static final FullQualifiedName FQN = new FullQualifiedName(DiscoveryEdmProvider.NAMESPACE, ET_NAME);
+  private String scheme;
+  private String value;
+  private String uriEncoded;
+
+
+  public ODATAParticipantIdentifier() {
+    setName(ET_NAME);
+
+    setKey(Arrays.asList(
+        new CsdlPropertyRef().setName("scheme"),
+        new CsdlPropertyRef().setName("value")
+    ));
 
     setProperties(
         Arrays.asList(
             new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-            new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
+            new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
+            new CsdlProperty().setName("uriEncoded").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
         ));
+
   }
 
-
-  private String scheme;
-  private String value;
-
-
-  public IdentifierTypeWrapper(String scheme, String value) {
+  public ODATAParticipantIdentifier(IParticipantIdentifier idp) {
     this();
-    this.scheme = scheme;
-    this.value = value;
+
+    this.scheme = idp.getScheme();
+    this.value = idp.getValue();
+    this.uriEncoded = idp.getURIEncoded();
   }
 
   public String getScheme() {
     return scheme;
   }
 
-  public void setScheme(String scheme) {
-    this.scheme = scheme;
-  }
-
   public String getValue() {
     return value;
   }
 
-  public void setValue(String value) {
-    this.value = value;
+  public String getUriEncoded() {
+    return uriEncoded;
   }
 
+  public void setUriEncoded(String uriEncoded) {
+    this.uriEncoded = uriEncoded;
+  }
 
-  @Override
-  public Property toProperty() {
+  public Entity asEntity() {
     Entity entity = new Entity();
     //entity.setId(createId());
     List<Property> pro = entity.getProperties();
     pro.add(createPrimitive("scheme", getScheme()));
     pro.add(createPrimitive("value", getValue()));
+    pro.add(createPrimitive("uriEncoded", getUriEncoded()));
 
     System.out.println("\tthis.getClass " + this.getClass() + " " + this.getName());
-    Property property = new Property(null, this.getName(), ValueType.ENTITY, entity);
-    return property;
+    return entity;
   }
 
 

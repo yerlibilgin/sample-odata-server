@@ -1,10 +1,12 @@
 package eu.toop;
 
 
-import eu.toop.model.complex.ServiceInformationTypeWrapper;
-import eu.toop.model.entity.CountryAwareServiceMetadataTypeWrapper;
-import eu.toop.model.entity.DocTypeIdentifierWrapper;
-import eu.toop.model.entity.ParticipantIdentifierTypeWrapper;
+import com.helger.commons.collection.impl.ICommonsSet;
+import com.helger.peppolid.IDocumentTypeIdentifier;
+import com.helger.peppolid.IParticipantIdentifier;
+import com.helger.peppolid.simple.doctype.SimpleDocumentTypeIdentifier;
+import eu.toop.model.ToopDirClient;
+import eu.toop.model.entity.ODATAParticipantIdentifier;
 import org.apache.olingo.commons.api.data.ContextURL;
 import org.apache.olingo.commons.api.data.EntityCollection;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -67,28 +69,21 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     LOGGER.debug("EDM ENTITY SET: " + edmEntitySet);
 
-    // Second we fetch the data for this specific entity set from the mock database and transform it into an EntitySet
-    // object which is understood by our serialization
-
-    //DiscoveryProvider.getInstance().getAllParticipantIDs();
     EntityCollection entitySet = new EntityCollection();
-    ParticipantIdentifierTypeWrapper pid = new ParticipantIdentifierTypeWrapper("scheme1", "party1");
-    DocTypeIdentifierWrapper did = new DocTypeIdentifierWrapper("scheme1", "docType1");
-    ServiceInformationTypeWrapper si = new ServiceInformationTypeWrapper(pid, did);
 
-    CountryAwareServiceMetadataTypeWrapper country = new CountryAwareServiceMetadataTypeWrapper("TR", si);
-    entitySet.getEntities().add(country.toEntity());
+    IDocumentTypeIdentifier docId = new SimpleDocumentTypeIdentifier(
+        "toop-doctypeid-qns", "urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40"
+    );
 
-
-    country = new CountryAwareServiceMetadataTypeWrapper("ES", si);
-    entitySet.getEntities().add(country.toEntity());
-
+    ICommonsSet<IParticipantIdentifier> gr = ToopDirClient.getAllParticipantIDs("GR", null);
+    gr.forEach(idp -> {
+      System.out.println(idp.getURIEncoded());
+      entitySet.getEntities().add(new ODATAParticipantIdentifier(idp).asEntity());
+    });
 
     // Next we create a serializer based on the requested format. This could also be a custom format but we do not
     // support them in this example
     ODataSerializer serializer = odata.createSerializer(responseFormat);
-
-    LOGGER.error("Serializer: " + serializer);
 
     // Now the content is serialized using the serializer.
     final ExpandOption expand = uriInfo.getExpandOption();
