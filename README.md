@@ -4,13 +4,13 @@ this server works as proxy to the existing
 TOOP directory and reinterprets its results to 
 and ODATA model and ODATA results.
 
-###Running
+### Running
 
 ```bash
 mvn jetty:run
 ```
 
-###Sample Curl Commands
+### Sample Curl Commands
 
 #### Get Metadata
 ```
