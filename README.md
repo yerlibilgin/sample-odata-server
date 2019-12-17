@@ -13,7 +13,8 @@ mvn jetty:run
 ###Sample Curl Commands
 
 #### Get Metadata
-```curl --request GET \
+```
+curl --request GET \
   --url http://localhost:8080/dsd.svc/%24metadata \
   --header 'accept: application/json'
   ```

@@ -2,6 +2,7 @@ package eu.toop.model.entity;
 
 import com.helger.peppolid.IParticipantIdentifier;
 import eu.toop.DiscoveryEdmProvider;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.data.ValueType;
@@ -69,7 +70,7 @@ public class ODATAParticipantIdentifier extends CsdlEntityType {
 
   public Entity asEntity() {
     Entity entity = new Entity();
-    //entity.setId(createId());
+    entity.setId(createId());
     List<Property> pro = entity.getProperties();
     pro.add(createPrimitive("scheme", getScheme()));
     pro.add(createPrimitive("value", getValue()));
@@ -84,13 +85,14 @@ public class ODATAParticipantIdentifier extends CsdlEntityType {
     return new Property(null, name, ValueType.PRIMITIVE, value);
   }
 
-  public static final URI createId(String entitySetName, Object id) {
+  public static final URI createId() {
     try {
-      URI uri = new URI(entitySetName + "(" + id + ")");
+      URIBuilder uriBuilder = new URIBuilder();
+      URI uri = new URI(ODATAParticipantIdentifiers.ET_NAME + "(scheme,value)");
       System.out.println("uri: " + uri);
       return uri;
     } catch (URISyntaxException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + entitySetName, e);
+      throw new ODataRuntimeException("Unable to create id for entity: " + ODATAParticipantIdentifiers.ET_NAME, e);
     }
   }
 }

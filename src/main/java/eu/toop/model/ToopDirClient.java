@@ -31,12 +31,21 @@ import com.helger.peppolid.IParticipantIdentifier;
 import com.helger.peppolid.simple.participant.SimpleParticipantIdentifier;
 import org.apache.http.client.methods.HttpGet;
 
+import eu.peppol.schema.pd.businesscard_generic._201907.*;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class ToopDirClient {
   private static final int MAX_RESULTS_PER_PAGE = 100;
 
   private static final String m_sBaseURL = "http://directory.acc.exchange.toop.eu";
+  private static final String TOOP_DIR_EXPORT_URL = "http://directory.acc.exchange.toop.eu/export/businesscards";
 
   private static IJsonObject _fetchJsonObject(final HttpClientManager aMgr,
                                               final ISimpleURL aURL) throws IOException {
@@ -63,7 +72,7 @@ public class ToopDirClient {
 
       if (sCountryCode != null)
         aBaseURL.add("country", sCountryCode);
-      
+
       if (aDocumentTypeID != null)
         aBaseURL.add("doctype",
             aDocumentTypeID.getURIEncoded());
@@ -121,6 +130,37 @@ public class ToopDirClient {
     }
 
     return ret;
+  }
+
+  private static RootType rootType;
+
+  public static ICommonsSet<IParticipantIdentifier> getAllParticipantIDs() {
+    //ObjectFactory of = new ObjectFactory();
+    //.
+
+    //return null;
+
+    if (rootType == null) {
+      try {
+        JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+        final JAXBElement<RootType> unmarshal = (JAXBElement<RootType>) jaxbUnmarshaller.unmarshal(new URL(TOOP_DIR_EXPORT_URL));
+        rootType = unmarshal.getValue();
+      } catch (Exception ex) {
+        throw new IllegalStateException("Sorry Cannot read directory.", ex);
+      }
+    }
+
+    CommonsHashSet<IParticipantIdentifier> set = new CommonsHashSet<>();
+    rootType.getBusinesscard().forEach(bc -> {
+
+      set.add(new SimpleParticipantIdentifier(bc.getParticipant().getScheme(),
+          bc.getParticipant().getValue()));
+
+    });
+
+    return set;
   }
 
   @Override
