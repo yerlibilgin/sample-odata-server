@@ -21,7 +21,7 @@ import java.util.List;
 public class ODATAParticipantIdentifier extends CsdlEntityType {
   public static final String ET_NAME = "ParticipantIdentifier";
 
-  public static final FullQualifiedName FQN = new FullQualifiedName(DiscoveryEdmProvider.NAMESPACE, ET_NAME);
+  public static final FullQualifiedName FQN = new FullQualifiedName(EdmStructure.NAMESPACE, ET_NAME);
   private String scheme;
   private String value;
   private String uriEncoded;

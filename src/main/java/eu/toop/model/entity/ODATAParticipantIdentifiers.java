@@ -7,7 +7,7 @@ import org.apache.olingo.commons.api.edm.provider.CsdlEntitySet;
 public class ODATAParticipantIdentifiers extends CsdlEntitySet {
   public static final String ET_NAME = "ParticipantIdentifiers";
 
-  public static final FullQualifiedName FQN = new FullQualifiedName(DiscoveryEdmProvider.NAMESPACE, ET_NAME);
+  public static final FullQualifiedName FQN = new FullQualifiedName(EdmStructure.NAMESPACE, ET_NAME);
   private static ODATAParticipantIdentifiers instance = new ODATAParticipantIdentifiers();
 
   private ODATAParticipantIdentifiers() {

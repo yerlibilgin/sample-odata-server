@@ -67,13 +67,9 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     EdmEntitySet edmEntitySet = getEdmEntitySet(uriInfoResource);
 
-    LOGGER.debug("EDM ENTITY SET: " + edmEntitySet);
+    LOGGER.debug("EDM ENTITY SET: " + edmEntitySet.getName());
 
     EntityCollection entitySet = new EntityCollection();
-
-    IDocumentTypeIdentifier docId = new SimpleDocumentTypeIdentifier(
-        "toop-doctypeid-qns", "urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40"
-    );
 
     ICommonsSet<IParticipantIdentifier> gr = ToopDirClient.getAllParticipantIDs();
     gr.forEach(idp -> {
