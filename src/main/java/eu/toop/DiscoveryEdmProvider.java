@@ -1,7 +1,6 @@
 package eu.toop;
 
-import eu.toop.model.entity.ODATAParticipantIdentifier;
-import eu.toop.model.entity.ODATAParticipantIdentifiers;
+import eu.toop.model.entity.EdmStructure;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.slf4j.Logger;
@@ -13,29 +12,31 @@ import java.util.List;
 public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
   private static final Logger LOGGER = LoggerFactory.getLogger(DiscoveryEdmProvider.class);
 
-  // Service Namespace
-  public static final String NAMESPACE = "eu.toop.dsd.odata";
-
-
-  // EDM Container
-  public static final String CONTAINER_NAME = "Container";
-  public static final FullQualifiedName CONTAINER_FQN = new FullQualifiedName(NAMESPACE, CONTAINER_NAME);
 
   @Override
   public CsdlEntityType getEntityType(final FullQualifiedName entityTypeName) {
     LOGGER.debug("ENTITY: " + entityTypeName.getFullQualifiedNameAsString());
-    if (ODATAParticipantIdentifier.FQN.equals(entityTypeName)) {
-      return new ODATAParticipantIdentifier();
+    if (EdmStructure.FQN_BusinessCard.equals(entityTypeName)) {
+      return EdmStructure.ET_BusinessCard;
+    } else if (EdmStructure.FQN_DoctypeID.equals(entityTypeName)){
+      return EdmStructure.ET_DoctypeID;
     }
 
     return null;
   }
 
-  // we don't have a complex type, no need to override this
-  //@Override
-  //public CsdlComplexType getComplexType(final FullQualifiedName complexTypeName) {
-  //  return null;
-  //}
+  @Override
+  public CsdlComplexType getComplexType(final FullQualifiedName complexTypeName) {
+    LOGGER.debug("ComplexType : " + complexTypeName.getFullQualifiedNameAsString());
+
+    if (EdmStructure.FQN_Entity.equals(complexTypeName)) {
+      return EdmStructure.CT_Entity;
+    } else if (EdmStructure.FQN_Participant.equals(complexTypeName)) {
+      return EdmStructure.CT_Participant;
+    }
+
+    return null;
+  }
 
 
   @Override
@@ -45,9 +46,10 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     else
       LOGGER.debug("ENTITY SET: null" + " " + entitySetName);
 
-    if (CONTAINER_FQN.equals(entityContainer) &&
-        ODATAParticipantIdentifiers.ET_NAME.equals(entitySetName)) {
-        return ODATAParticipantIdentifiers.getInstance();
+    if (EdmStructure.CONTAINER_FQN.equals(entityContainer)){
+      if(EdmStructure.NAME_BusinessCards.equals(entitySetName)) {
+        return EdmStructure.ES_BusinessCards;
+      }
     }
 
     return null;
@@ -57,15 +59,19 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
   public List<CsdlSchema> getSchemas() {
     List<CsdlSchema> schemas = new ArrayList<CsdlSchema>();
     CsdlSchema schema = new CsdlSchema();
-    schema.setNamespace(NAMESPACE);
+    schema.setNamespace(EdmStructure.NAMESPACE);
     // EntityTypes
     List<CsdlEntityType> entityTypes = new ArrayList<CsdlEntityType>();
-    entityTypes.add(new ODATAParticipantIdentifier());
-
+    entityTypes.add(EdmStructure.ET_BusinessCard);
+    entityTypes.add(EdmStructure.ET_DoctypeID);
     schema.setEntityTypes(entityTypes);
 
     //// ComplexTypes
     // we don't have complex types for now
+    List<CsdlComplexType> complexTypes = new ArrayList<>();
+    complexTypes.add(EdmStructure.CT_Entity);
+    complexTypes.add(EdmStructure.CT_Participant);
+    schema.setComplexTypes(complexTypes);
 
     // EntityContainer
     schema.setEntityContainer(getEntityContainer());
@@ -77,20 +83,20 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
   @Override
   public CsdlEntityContainer getEntityContainer() {
     CsdlEntityContainer container = new CsdlEntityContainer();
-    container.setName(CONTAINER_FQN.getName());
+    container.setName(EdmStructure.CONTAINER_FQN.getName());
 
     // EntitySets
     List<CsdlEntitySet> entitySets = new ArrayList<CsdlEntitySet>();
     container.setEntitySets(entitySets);
-    entitySets.add(ODATAParticipantIdentifiers.getInstance());
+    entitySets.add(EdmStructure.ES_BusinessCards);
     return container;
   }
 
   @Override
   public CsdlEntityContainerInfo getEntityContainerInfo(final FullQualifiedName entityContainerName) {
     LOGGER.debug("Entity container info " + entityContainerName);
-    if (entityContainerName == null || CONTAINER_FQN.equals(entityContainerName)) {
-      return new CsdlEntityContainerInfo().setContainerName(CONTAINER_FQN);
+    if (entityContainerName == null || EdmStructure.CONTAINER_FQN.equals(entityContainerName)) {
+      return EdmStructure.ECI_Container;
     }
     return null;
   }
