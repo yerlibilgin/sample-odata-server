@@ -15,7 +15,10 @@ import java.util.ArrayList;
 public class DSDServlet extends HttpServlet {
   private static final Logger LOGGER = LoggerFactory.getLogger(DSDServlet.class);
 
-  private static final DiscoveryODataWrapper ddw = DiscoveryODataWrapper.getInstance();
+  private static final DiscoveryCollectionProcessor dcp = new DiscoveryCollectionProcessor();
+  private static final DiscoveryEntityProcessor dep = new DiscoveryEntityProcessor();
+  private static final DiscoveryPrimitiveProcessor dpp = new DiscoveryPrimitiveProcessor();
+  private static final ErrorProcessor ep = new ErrorProcessor();
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
@@ -23,7 +26,10 @@ public class DSDServlet extends HttpServlet {
       OData odata = OData.newInstance();
       ServiceMetadata edm = odata.createServiceMetadata(new DiscoveryEdmProvider(), new ArrayList<>());
       ODataHttpHandler handler = odata.createHandler(edm);
-      handler.register(ddw);
+      handler.register(dcp);
+      handler.register(dep);
+      handler.register(dpp);
+      handler.register(ep);
       handler.process(req, resp);
     } catch (RuntimeException e) {
       LOGGER.error("Server Error", e);
