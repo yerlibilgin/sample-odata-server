@@ -73,9 +73,9 @@ public class EdmStructure {
   public static final CsdlComplexType CT_Entity = new CsdlComplexType().setName(NAME_Entity).setProperties(
       Arrays.asList(
           new CsdlProperty().setName("countrycode").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("name").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
+          new CsdlProperty().setName("name").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
+          //new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
+          //new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
       )
   );
 

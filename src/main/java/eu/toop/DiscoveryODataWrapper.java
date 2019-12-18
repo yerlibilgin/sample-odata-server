@@ -2,11 +2,9 @@ package eu.toop;
 
 
 import eu.toop.model.ToopDirClient;
-import org.apache.olingo.commons.api.data.ContextURL;
+import org.apache.olingo.commons.api.Constants;
+import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
-import org.apache.olingo.commons.api.data.Entity;
-import org.apache.olingo.commons.api.data.EntityCollection;
-import org.apache.olingo.commons.api.data.Property;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.ex.ODataNotSupportedException;
 import org.apache.olingo.commons.api.format.ContentType;
@@ -16,6 +14,7 @@ import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.processor.*;
 import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
+import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.slf4j.Logger;
@@ -53,128 +52,104 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
     LOGGER.debug("readComplex " + uriInfo.toString());
   }
 
-  //@Override
-  public void readEntdityCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-    UriInfoResource uriInfoResource = uriInfo.asUriInfoResource();
-    LOGGER.debug("readEntityCollection " + uriInfoResource);
-
-    EdmEntitySet edmEntitySet = getEdmEntitySet(uriInfoResource);
-
-    LOGGER.debug("EDM ENTITY SET: " + edmEntitySet.getName());
-
-    EntityCollection entitySet = new EntityCollection();
-
-    //Map<Integer, BusinessCardType> all = ToopDirClient.getAllParticipantIDs();
-//
-    //all.forEach((id, bt) -> {
-    //  entitySet.getEntities().add(ODataDirectoryHelper.asEntity(id, bt));
-    //});
-
-    // Next we create a serializer based on the requested format. This could also be a custom format but we do not
-    // support them in this example
-    ODataSerializer serializer = odata.createSerializer(responseFormat);
-
-    // Now the content is serialized using the serializer.
-    final ExpandOption expand = uriInfo.getExpandOption();
-    final SelectOption select = uriInfo.getSelectOption();
-    final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
-    InputStream serializedContent = serializer.entityCollection(serviceMetadata,
-        edmEntitySet.getEntityType(),
-        entitySet,
-        EntityCollectionSerializerOptions.with()
-            .id(id)
-            .contextURL(isODataMetadataNone(responseFormat) ? null :
-                getContextUrl(edmEntitySet, false, expand, select, null))
-            .count(uriInfo.getCountOption())
-            .expand(expand).select(select)
-            .build()).getContent();
-
-    // Finally we set the response data, headers and status code
-    response.setContent(serializedContent);
-    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
-    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
-  }
-
   public void readEntityCollection(ODataRequest request, ODataResponse response,
                                    UriInfo uriInfo, ContentType responseFormat)
       throws ODataApplicationException, SerializerException {
 
-    EdmEntitySet responseEdmEntitySet = null; // we'll need this to build the ContextURL
-    EntityCollection responseEntityCollection = null; // we'll need this to set the response body
-    EdmEntityType responseEdmEntityType = null;
+    // 1st retrieve the requested EdmEntitySet from the uriInfo
+    List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+    // in our example, the first segment is the EntitySet
+    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+    EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 
-    // 1st retrieve the requested EntitySet from the uriInfo (representation of the parsed URI)
-    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
-    int segmentCount = resourceParts.size();
+    // 2nd: fetch the data from backend for this requested EntitySetName
+    EntityCollection entityCollection = ToopDirClient.readEntitySetData(edmEntitySet);
 
-    UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
-    if (!(uriResource instanceof UriResourceEntitySet)) {
-      throw new ODataApplicationException("Only EntitySet is supported",
-          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
-    }
+    // 3rd: apply system query options
+    SelectOption selectOption = uriInfo.getSelectOption();
+    ExpandOption expandOption = uriInfo.getExpandOption();
 
-    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
-    EdmEntitySet startEdmEntitySet = uriResourceEntitySet.getEntitySet();
-
-    if (segmentCount == 1) { // this is the case for: DemoService/DemoService.svc/Categories
-      responseEdmEntitySet = startEdmEntitySet; // the response body is built from the first (and only) entitySet
-
-      // 2nd: fetch the data from backend for this requested EntitySetName and deliver as EntitySet
-      responseEntityCollection = ToopDirClient.readEntitySetData(startEdmEntitySet);
-    } else if (segmentCount == 2) { // in case of navigation: DemoService.svc/Categories(3)/Products
-
-      UriResource lastSegment = resourceParts.get(1); // in our example we don't support more complex URIs
-      if (lastSegment instanceof UriResourceNavigation) {
-        UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) lastSegment;
-        EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
-        EdmEntityType targetEntityType = edmNavigationProperty.getType();
-        if (!edmNavigationProperty.containsTarget()) {
-          // from Categories(1) to Products
-          responseEdmEntitySet = Util.getNavigationTargetEntitySet(startEdmEntitySet, edmNavigationProperty);
-        } else {
-          responseEdmEntitySet = startEdmEntitySet;
-          responseEdmEntityType = targetEntityType;
+    // handle $expand
+    // in our example: http://localhost:8080/DemoService/DemoService.svc/Categories/$expand=Products
+    // or http://localhost:8080/DemoService/DemoService.svc/Products?$expand=Category
+    if (expandOption != null) {
+      // retrieve the EdmNavigationProperty from the expand expression
+      // Note: in our example, we have only one NavigationProperty, so we can directly access it
+      EdmNavigationProperty edmNavigationProperty = null;
+      ExpandItem expandItem = expandOption.getExpandItems().get(0);
+      if(expandItem.isStar()) {
+        List<EdmNavigationPropertyBinding> bindings = edmEntitySet.getNavigationPropertyBindings();
+        // we know that there are navigation bindings
+        // however normally in this case a check if navigation bindings exists is done
+        if(!bindings.isEmpty()) {
+          // can in our case only be 'Category' or 'Products', so we can take the first
+          EdmNavigationPropertyBinding binding = bindings.get(0);
+          EdmElement property = edmEntitySet.getEntityType().getProperty(binding.getPath());
+          // we don't need to handle error cases, as it is done in the Olingo library
+          if(property instanceof EdmNavigationProperty) {
+            edmNavigationProperty = (EdmNavigationProperty) property;
+          }
         }
-
-        // 2nd: fetch the data from backend
-        // first fetch the entity where the first segment of the URI points to
-        List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
-        // e.g. for Categories(3)/Products we have to find the single entity: Category with ID 3
-        Entity sourceEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
-        // error handling for e.g. DemoService.svc/Categories(99)/Products
-        if (sourceEntity == null) {
-          throw new ODataApplicationException("Entity not found.",
-              HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
+      } else {
+        // can be 'Category' or 'Products', no path supported
+        UriResource uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
+        // we don't need to handle error cases, as it is done in the Olingo library
+        if(uriResource instanceof UriResourceNavigation) {
+          edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
         }
-        // then fetch the entity collection where the entity navigates to
-        // note: we don't need to check uriResourceNavigation.isCollection(),
-        // because we are the EntityCollectionProcessor
-        responseEntityCollection = ToopDirClient.getRelatedEntityCollection(sourceEntity, targetEntityType);
       }
-    } else { // this would be the case for e.g. Products(1)/Category/Products
-      throw new ODataApplicationException("Not supported",
-          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+
+      // can be 'Category' or 'Products', no path supported
+      // we don't need to handle error cases, as it is done in the Olingo library
+      if(edmNavigationProperty != null) {
+        String navPropName = edmNavigationProperty.getName();
+        EdmEntityType expandEdmEntityType = edmNavigationProperty.getType();
+
+        List<Entity> entityList = entityCollection.getEntities();
+        for (Entity entity : entityList) {
+          Link link = new Link();
+          link.setTitle(navPropName);
+          link.setType(Constants.ENTITY_NAVIGATION_LINK_TYPE);
+          link.setRel(Constants.NS_ASSOCIATION_LINK_REL + navPropName);
+
+          if (edmNavigationProperty.isCollection()) { // in case of Categories/$expand=Products
+            // fetch the data for the $expand (to-many navigation) from backend
+            EntityCollection expandEntityCollection = ToopDirClient.getRelatedEntityCollection(entity, expandEdmEntityType);
+            link.setInlineEntitySet(expandEntityCollection);
+            //link.setHref(expandEntityCollection.getId().toASCIIString());
+          } else { // in case of Products?$expand=Category
+            // fetch the data for the $expand (to-one navigation) from backend
+            // here we get the data for the expand
+            Entity expandEntity = ToopDirClient.getRelatedEntity(entity, expandEdmEntityType);
+            link.setInlineEntity(expandEntity);
+            link.setHref(expandEntity.getId().toASCIIString());
+          }
+
+          // set the link - containing the expanded data - to the current entity
+          entity.getNavigationLinks().add(link);
+        }
+      }
     }
 
-    ContextURL contextUrl = null;
-    EdmEntityType edmEntityType = null;
-    // 3rd: create and configure a serializer
-    if (isContNav(uriInfo)) {
-      contextUrl = ContextURL.with().entitySetOrSingletonOrType(request.getRawODataPath()).build();
-      edmEntityType = responseEdmEntityType;
-    } else {
-      contextUrl = ContextURL.with().entitySet(responseEdmEntitySet).build();
-      edmEntityType = responseEdmEntitySet.getEntityType();
-    }
-    final String id = request.getRawBaseUri() + "/" + responseEdmEntitySet.getName();
+    // 4th: serialize
+    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+    // we need the property names of the $select, in order to build the context URL
+    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, expandOption, selectOption);
+    ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).selectList(selectList).build();
+
+    // adding the selectOption to the serializerOpts will actually tell the lib to do the job
+    final String id = request.getRawBaseUri() + "/" + edmEntitySet.getName();
     EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
-        .contextURL(contextUrl).id(id).build();
+        .contextURL(contextUrl)
+        .select(selectOption)
+        .expand(expandOption)
+        .id(id)
+        .build();
 
     ODataSerializer serializer = odata.createSerializer(responseFormat);
-    SerializerResult serializerResult = serializer.entityCollection(this.serviceMetadata, edmEntityType,
-        responseEntityCollection, opts);
+    SerializerResult serializerResult = serializer.entityCollection(serviceMetadata, edmEntityType, entityCollection, opts);
 
-    // 4th: configure the response object: set the body, headers and status code
+    // 5th: configure the response object: set the body, headers and status code
     response.setContent(serializerResult.getContent());
     response.setStatusCode(HttpStatusCode.OK.getStatusCode());
     response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
@@ -183,90 +158,106 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
   public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
       throws ODataApplicationException, SerializerException {
-    EdmEntityType responseEdmEntityType = null; // we'll need this to build the ContextURL
-    Entity responseEntity = null; // required for serialization of the response body
-    EdmEntitySet responseEdmEntitySet = null; // we need this for building the contextUrl
+    // 1. retrieve the Entity Type
+    List<UriResource> resourcePaths = uriInfo.getUriResourceParts();
+    // Note: only in our example we can assume that the first segment is the EntitySet
+    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) resourcePaths.get(0);
+    EdmEntitySet edmEntitySet = uriResourceEntitySet.getEntitySet();
 
-    // 1st step: retrieve the requested Entity: can be "normal" read operation, or navigation (to-one)
-    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
-    int segmentCount = resourceParts.size();
+    // 2. retrieve the data from backend
+    List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+    Entity entity = ToopDirClient.readEntityData(edmEntitySet, keyPredicates);
 
-    UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
-    if (!(uriResource instanceof UriResourceEntitySet)) {
-      throw new ODataApplicationException("Only EntitySet is supported",
-          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
-    }
+    // 3. apply system query options
 
-    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
-    EdmEntitySet startEdmEntitySet = uriResourceEntitySet.getEntitySet();
+    // handle $select
+    SelectOption selectOption = uriInfo.getSelectOption();
+    // in our example, we don't have performance issues, so we can rely upon the handling in the Olingo lib
+    // nothing else to be done
 
-    // Analyze the URI segments
-    if (segmentCount == 1) { // no navigation
-      responseEdmEntityType = startEdmEntitySet.getEntityType();
-      responseEdmEntitySet = startEdmEntitySet; // since we have only one segment
-
-      // 2. step: retrieve the data from backend
-      List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
-      responseEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
-    } else if (segmentCount == 2) { // navigation
-      UriResource navSegment = resourceParts.get(1); // in our example we don't support more complex URIs
-      if (navSegment instanceof UriResourceNavigation) {
-        UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) navSegment;
-        EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
-        responseEdmEntityType = edmNavigationProperty.getType();
-        if (!edmNavigationProperty.containsTarget()) {
-          // contextURL displays the last segment
-          responseEdmEntitySet = Util.getNavigationTargetEntitySet(startEdmEntitySet, edmNavigationProperty);
-        } else {
-          responseEdmEntitySet = startEdmEntitySet;
+    // handle $expand
+    ExpandOption expandOption = uriInfo.getExpandOption();
+    // in our example: http://localhost:8080/DemoService/DemoService.svc/Categories(1)/$expand=Products
+    // or http://localhost:8080/DemoService/DemoService.svc/Products(1)?$expand=Category
+    if(expandOption != null) {
+      // retrieve the EdmNavigationProperty from the expand expression
+      // Note: in our example, we have only one NavigationProperty, so we can directly access it
+      EdmNavigationProperty edmNavigationProperty = null;
+      ExpandItem expandItem = expandOption.getExpandItems().get(0);
+      if(expandItem.isStar()) {
+        List<EdmNavigationPropertyBinding> bindings = edmEntitySet.getNavigationPropertyBindings();
+        // we know that there are navigation bindings
+        // however normally in this case a check if navigation bindings exists is done
+        if(!bindings.isEmpty()) {
+          // can in our case only be 'Category' or 'Products', so we can take the first
+          EdmNavigationPropertyBinding binding = bindings.get(0);
+          EdmElement property = edmEntitySet.getEntityType().getProperty(binding.getPath());
+          // we don't need to handle error cases, as it is done in the Olingo library
+          if(property instanceof EdmNavigationProperty) {
+            edmNavigationProperty = (EdmNavigationProperty) property;
+          }
         }
-
-
-        // 2nd: fetch the data from backend.
-        // e.g. for the URI: Products(1)/Category we have to find the correct Category entity
-        List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
-        // e.g. for Products(1)/Category we have to find first the Products(1)
-        Entity sourceEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
-
-        // now we have to check if the navigation is
-        // a) to-one: e.g. Products(1)/Category
-        // b) to-many with key: e.g. Categories(3)/Products(5)
-        // the key for nav is used in this case: Categories(3)/Products(5)
-        List<UriParameter> navKeyPredicates = uriResourceNavigation.getKeyPredicates();
-
-        if (navKeyPredicates.isEmpty()) { // e.g. DemoService.svc/Products(1)/Category
-          responseEntity = ToopDirClient.getRelatedEntity(sourceEntity, responseEdmEntityType);
-        } else { // e.g. DemoService.svc/Categories(3)/Products(5)
-          responseEntity = ToopDirClient.getRelatedEntity(sourceEntity, responseEdmEntityType, navKeyPredicates);
+      } else {
+        // can be 'Category' or 'Products', no path supported
+        UriResource uriResource = expandItem.getResourcePath().getUriResourceParts().get(0);
+        // we don't need to handle error cases, as it is done in the Olingo library
+        if(uriResource instanceof UriResourceNavigation) {
+          edmNavigationProperty = ((UriResourceNavigation) uriResource).getProperty();
         }
       }
-    } else {
-      // this would be the case for e.g. Products(1)/Category/Products(1)/Category
-      throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+
+      // can be 'Category' or 'Products', no path supported
+      // we don't need to handle error cases, as it is done in the Olingo library
+      if(edmNavigationProperty != null) {
+        EdmEntityType expandEdmEntityType = edmNavigationProperty.getType();
+        String navPropName = edmNavigationProperty.getName();
+
+        // build the inline data
+        Link link = new Link();
+        link.setTitle(navPropName);
+        link.setType(Constants.ENTITY_NAVIGATION_LINK_TYPE);
+        link.setRel(Constants.NS_ASSOCIATION_LINK_REL + navPropName);
+
+        if(edmNavigationProperty.isCollection()){ // in case of Categories(1)/$expand=Products
+          // fetch the data for the $expand (to-many navigation) from backend
+          // here we get the data for the expand
+          EntityCollection expandEntityCollection = ToopDirClient.getRelatedEntityCollection(entity, expandEdmEntityType);
+          link.setInlineEntitySet(expandEntityCollection);
+          //link.setHref(expandEntityCollection.getId().toASCIIString());
+        } else {  // in case of Products(1)?$expand=Category
+          // fetch the data for the $expand (to-one navigation) from backend
+          // here we get the data for the expand
+          Entity expandEntity = ToopDirClient.getRelatedEntity(entity, expandEdmEntityType);
+          link.setInlineEntity(expandEntity);
+          link.setHref(expandEntity.getId().toASCIIString());
+        }
+
+        // set the link - containing the expanded data - to the current entity
+        entity.getNavigationLinks().add(link);
+      }
     }
 
-    if (responseEntity == null) {
-      // this is the case for e.g. DemoService.svc/Categories(4) or DemoService.svc/Categories(3)/Products(999)
-      throw new ODataApplicationException("Nothing found.", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
-    }
 
-    // 3. serialize
-    ContextURL contextUrl = null;
-    if (
+    // 4. serialize
+    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+    // we need the property names of the $select, in order to build the context URL
+    String selectList = odata.createUriHelper().buildContextURLSelectList(edmEntityType, expandOption, selectOption);
+    ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet)
+        .selectList(selectList)
+        .suffix(Suffix.ENTITY).build();
 
-        isContNav(uriInfo)) {
-      contextUrl = ContextURL.with().entitySetOrSingletonOrType(request.getRawODataPath()).
-          suffix(Suffix.ENTITY).build();
-    } else {
-      contextUrl = ContextURL.with().entitySet(responseEdmEntitySet).suffix(Suffix.ENTITY).build();
-    }
-
-    EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
+    // make sure that $expand and $select are considered by the serializer
+    // adding the selectOption to the serializerOpts will actually tell the lib to do the job
+    EntitySerializerOptions opts = EntitySerializerOptions.with()
+        .contextURL(contextUrl)
+        .select(selectOption)
+        .expand(expandOption)
+        .build();
 
     ODataSerializer serializer = this.odata.createSerializer(responseFormat);
-    SerializerResult serializerResult = serializer.entity(this.serviceMetadata, responseEdmEntityType, responseEntity, opts);
+    SerializerResult serializerResult = serializer.entity(serviceMetadata, edmEntityType, entity, opts);
 
-    // 4. configure the response object
+    // 5. configure the response object
     response.setContent(serializerResult.getContent());
     response.setStatusCode(HttpStatusCode.OK.getStatusCode());
     response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());

@@ -3,16 +3,12 @@ package eu.toop.model;
 import eu.peppol.schema.pd.businesscard_generic._201907.BusinessCardType;
 import eu.toop.Util;
 import eu.toop.model.entity.EdmStructure;
-import eu.toop.model.entity.ODataDirectoryHelper;
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
-import org.apache.olingo.commons.api.edm.provider.CsdlComplexType;
-import org.apache.olingo.commons.api.edm.provider.CsdlProperty;
+import org.apache.olingo.commons.api.data.ValueType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class BusinessCardTypeWrapper extends Entity {
@@ -28,33 +24,28 @@ public class BusinessCardTypeWrapper extends Entity {
     setId(Util.createId());
     addProperty(Util.createPrimitive("Id", id));
 
-    //participant = new ComplexValue();
-    //participant.setTypeName(EdmStructure.NAME_Participant);
-    //participant.
-//
-    //    addProperty(new Property())
-    ////entity.addProperty(ODataDirectoryHelper.createPrimitive("scheme", idType.getScheme()));
-    //entity.addProperty(ODataDirectoryHelper.createPrimitive("value", idType.getScheme()));
+    ComplexValue complexValue = new ComplexValue();
+    List<Property> pro = complexValue.getValue();
+    pro.add(Util.createPrimitive("scheme", businessCardType.getParticipant().getScheme()));
+    pro.add(Util.createPrimitive("value", businessCardType.getParticipant().getScheme()));
+
+    Property property = new Property(null, EdmStructure.NAME_Participant, ValueType.COMPLEX, complexValue);
+    addProperty(property);
+
+
+    complexValue = new ComplexValue();
+    pro = complexValue.getValue();
+    pro.add(Util.createPrimitive("countrycode", businessCardType.getEntity().get(0).getCountrycode()));
+    pro.add(Util.createPrimitive("name", businessCardType.getEntity().get(0).getName().get(0).getName()));
+    //if (businessCardType.getEntity().get(0).getId().size() > 0) {
+    //  pro.add(Util.createPrimitive("scheme", businessCardType.getEntity().get(0).getId().get(0).getScheme()));
+    //  pro.add(Util.createPrimitive("value", businessCardType.getEntity().get(0).getId().get(0).getValue()));
+    //}
+
+    property = new Property(null, EdmStructure.NAME_Entity, ValueType.COMPLEX, complexValue);
+    addProperty(property);
 
   }
-
-
-
-  public static final CsdlComplexType CT_Participant = new CsdlComplexType().setName(NAME_Participant).setProperties(
-      Arrays.asList(
-          new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-      )
-  );
-
-  public static final CsdlComplexType CT_Entity = new CsdlComplexType().setName(NAME_Entity).setProperties(
-      Arrays.asList(
-          new CsdlProperty().setName("countrycode").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("name").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())
-      )
-  );
 
   public BusinessCardType getBusinessCardType() {
     return businessCardType;
