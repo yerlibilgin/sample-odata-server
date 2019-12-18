@@ -193,7 +193,7 @@ Output:
 </a:feed>
 ```
 
-__Note__: The query for the DoctType that is listed under a business card has to be executed within an expand, 
+__Note__: The query for the DocType that is listed under a business card has to be executed within an expand, 
 the reason is that a doctype is a navigation property for a business card, therefore it is lazy loaded, first you have
 to expand it and then you have to filter it.
 
