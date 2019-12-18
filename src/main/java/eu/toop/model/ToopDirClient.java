@@ -29,23 +29,41 @@ import com.helger.json.IJsonObject;
 import com.helger.peppolid.IDocumentTypeIdentifier;
 import com.helger.peppolid.IParticipantIdentifier;
 import com.helger.peppolid.simple.participant.SimpleParticipantIdentifier;
+import eu.peppol.schema.pd.businesscard_generic._201907.ObjectFactory;
+import eu.peppol.schema.pd.businesscard_generic._201907.RootType;
+import eu.toop.Util;
+import eu.toop.model.entity.EdmStructure;
 import org.apache.http.client.methods.HttpGet;
-
-import eu.peppol.schema.pd.businesscard_generic._201907.*;
+import org.apache.olingo.commons.api.data.Entity;
+import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
+import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.apache.olingo.commons.api.edm.FullQualifiedName;
+import org.apache.olingo.server.api.uri.UriParameter;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ToopDirClient {
   private static final int MAX_RESULTS_PER_PAGE = 100;
 
   private static final String m_sBaseURL = "http://directory.acc.exchange.toop.eu";
-  private static final String TOOP_DIR_EXPORT_URL = "http://directory.acc.exchange.toop.eu/export/businesscards";
+  //private static final String TOOP_DIR_EXPORT_URL = "http://directory.acc.exchange.toop.eu/export/businesscards";
+  private static final String TOOP_DIR_EXPORT_URL = "file:./directory-export-business-cards.xml";
+
+  private static final Map<Integer, BusinessCardTypeWrapper> businessCards = new LinkedHashMap<>();
+  private static final Map<Integer, DocTypeWrapper> docTypeMap = new LinkedHashMap<>();
+
+  static {
+    getAllParticipantIDs();
+  }
 
   private static IJsonObject _fetchJsonObject(final HttpClientManager aMgr,
                                               final ISimpleURL aURL) throws IOException {
@@ -57,6 +75,7 @@ public class ToopDirClient {
 
     return null;
   }
+
 
 
   public static ICommonsSet<IParticipantIdentifier> getAllParticipantIDs(final String sCountryCode,
@@ -132,10 +151,9 @@ public class ToopDirClient {
     return ret;
   }
 
-  private static final Map<Integer, BusinessCardType> businessCards = new LinkedHashMap<>();
-  private static final Map<Integer, IDType> docTypeMap = new LinkedHashMap<>();
 
-  public static ICommonsSet<IParticipantIdentifier> getAllParticipantIDs() {
+
+  public static Map<Integer, BusinessCardTypeWrapper> getAllParticipantIDs() {
 
     if (businessCards.size() == 0) {
       try {
@@ -149,10 +167,17 @@ public class ToopDirClient {
         final AtomicInteger docEr = new AtomicInteger(0);
         //process the entities
         rootType.getBusinesscard().forEach(businessCardType -> {
-          businessCards.put(idEr.getAndIncrement(), businessCardType);
+          final int bcId = idEr.getAndIncrement();
+          final BusinessCardTypeWrapper bcw = new BusinessCardTypeWrapper(bcId, businessCardType);
+          businessCards.put(bcId, bcw);
 
           businessCardType.getDoctypeid().forEach(idType -> {
-            docTypeMap.put(docEr.getAndIncrement(), idType);
+            final int docId = docEr.getAndIncrement();
+
+            final DocTypeWrapper docTypeWrapper = new DocTypeWrapper(docId, idType);
+            bcw.getDocTypes().add(docTypeWrapper);
+
+            docTypeMap.put(docId, docTypeWrapper);
           });
         });
 
@@ -161,18 +186,112 @@ public class ToopDirClient {
       }
     }
 
-    CommonsHashSet<IParticipantIdentifier> set = new CommonsHashSet<>();
-    businessCards.forEach((key, value) -> {
-      set.add(new SimpleParticipantIdentifier(value.getParticipant().getScheme(),
-          value.getParticipant().getValue()));
-
-    });
-
-    return set;
+    return businessCards;
   }
 
   @Override
   public String toString() {
     return new ToStringGenerator(this).append("BaseURL", m_sBaseURL).getToString();
+  }
+
+  public static EntityCollection getRelatedEntityCollection(Entity sourceEntity, EdmEntityType targetEntityType) {
+      EntityCollection navigationTargetEntityCollection = new EntityCollection();
+
+      FullQualifiedName relatedEntityFqn = targetEntityType.getFullQualifiedName();
+      String sourceEntityFqn = sourceEntity.getType();
+
+     if (sourceEntityFqn.equals(EdmStructure.FQN_BusinessCard.getFullQualifiedNameAsString())
+          && relatedEntityFqn.equals(EdmStructure.FQN_DoctypeID)) {
+        int productID = (Integer) sourceEntity.getProperty("Id").getValue();
+
+        businessCards.get(productID).getDocTypes().forEach(dt -> {
+          navigationTargetEntityCollection.getEntities().add(dt);
+        });
+
+      if (navigationTargetEntityCollection.getEntities().isEmpty()) {
+        return null;
+      }
+
+      return navigationTargetEntityCollection;
+    }
+
+
+    return null;
+  }
+
+  public static Entity readEntityData(EdmEntitySet edmEntitySet, List<UriParameter> keyParams) {
+    Entity entity = null;
+
+    EdmEntityType edmEntityType = edmEntitySet.getEntityType();
+
+    if (edmEntityType.getName().equals(EdmStructure.NAME_BusinessCard)) {
+      entity = getBCard(edmEntityType, keyParams);
+    } else if (edmEntityType.getName().equals(EdmStructure.NAME_DoctypeID)) {
+      entity = getDocType(edmEntityType, keyParams);
+    }
+
+    return entity;
+  }
+
+
+  public static Entity getBCard(EdmEntityType edmEntityType, List<UriParameter> keyParams) {
+    // the list of entities at runtime
+    EntityCollection entityCollection = getBusinessCards();
+
+    /* generic approach to find the requested entity */
+    return Util.findEntity(edmEntityType, entityCollection, keyParams);
+  }
+
+  private static EntityCollection getBusinessCards() {
+    EntityCollection entityCollection = new EntityCollection();
+    businessCards.forEach((id, value) -> {
+      entityCollection.getEntities().add(value);
+    });
+
+    return entityCollection;
+  }
+
+  private static Entity getDocType(EdmEntityType edmEntityType, List<UriParameter> keyParams) {
+
+    // the list of entities at runtime
+    EntityCollection entityCollection = getDocTypes();
+
+    /* generic approach to find the requested entity */
+    return Util.findEntity(edmEntityType, entityCollection, keyParams);
+  }
+
+  private static EntityCollection getDocTypes() {
+    EntityCollection entityCollection = new EntityCollection();
+    docTypeMap.forEach((id, docType) -> {
+      entityCollection.getEntities().add(docType);
+    });
+
+    return entityCollection;
+  }
+
+
+  public static EntityCollection readEntitySetData(EdmEntitySet edmEntitySet) {
+
+
+    if (edmEntitySet.getName().equals(EdmStructure.NAME_BusinessCards)) {
+      return getBusinessCards();
+    }
+
+    return null;
+  }
+
+
+
+  public static Entity getRelatedEntity(Entity entity, EdmEntityType relatedEntityType) {
+    EntityCollection collection = getRelatedEntityCollection(entity, relatedEntityType);
+    if (collection.getEntities().isEmpty()) {
+      return null;
+    }
+    return collection.getEntities().get(0);
+  }
+
+  public static Entity getRelatedEntity(Entity entity, EdmEntityType relatedEntityType, List<UriParameter> keyPredicates) {
+    EntityCollection relatedEntities = getRelatedEntityCollection(entity, relatedEntityType);
+    return Util.findEntity(relatedEntityType, relatedEntities, keyPredicates);
   }
 }

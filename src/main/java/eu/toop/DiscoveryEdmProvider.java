@@ -49,8 +49,6 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     if (EdmStructure.CONTAINER_FQN.equals(entityContainer)){
       if(EdmStructure.NAME_BusinessCards.equals(entitySetName)) {
         return EdmStructure.ES_BusinessCards;
-      } else if(EdmStructure.NAME_DoctypeIDs.equals(entitySetName)) {
-        return EdmStructure.ES_DoctypeIDS;
       }
     }
 
@@ -91,7 +89,6 @@ public class DiscoveryEdmProvider extends CsdlAbstractEdmProvider {
     List<CsdlEntitySet> entitySets = new ArrayList<CsdlEntitySet>();
     container.setEntitySets(entitySets);
     entitySets.add(EdmStructure.ES_BusinessCards);
-    entitySets.add(EdmStructure.ES_DoctypeIDS);
     return container;
   }
 

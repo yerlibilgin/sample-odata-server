@@ -1,28 +1,21 @@
 package eu.toop;
 
 
-import com.helger.commons.collection.impl.ICommonsSet;
-import com.helger.peppolid.IDocumentTypeIdentifier;
-import com.helger.peppolid.IParticipantIdentifier;
-import com.helger.peppolid.simple.doctype.SimpleDocumentTypeIdentifier;
 import eu.toop.model.ToopDirClient;
-import eu.toop.model.entity.ODATAParticipantIdentifier;
 import org.apache.olingo.commons.api.data.ContextURL;
+import org.apache.olingo.commons.api.data.ContextURL.Suffix;
+import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
-import org.apache.olingo.commons.api.edm.EdmEntitySet;
+import org.apache.olingo.commons.api.data.Property;
+import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.ex.ODataNotSupportedException;
 import org.apache.olingo.commons.api.format.ContentType;
 import org.apache.olingo.commons.api.http.HttpHeader;
 import org.apache.olingo.commons.api.http.HttpStatusCode;
 import org.apache.olingo.server.api.*;
 import org.apache.olingo.server.api.processor.*;
-import org.apache.olingo.server.api.serializer.EntityCollectionSerializerOptions;
-import org.apache.olingo.server.api.serializer.ODataSerializer;
-import org.apache.olingo.server.api.serializer.SerializerException;
-import org.apache.olingo.server.api.uri.UriInfo;
-import org.apache.olingo.server.api.uri.UriInfoResource;
-import org.apache.olingo.server.api.uri.UriResource;
-import org.apache.olingo.server.api.uri.UriResourceEntitySet;
+import org.apache.olingo.server.api.serializer.*;
+import org.apache.olingo.server.api.uri.*;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
 import org.slf4j.Logger;
@@ -60,8 +53,8 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
     LOGGER.debug("readComplex " + uriInfo.toString());
   }
 
-  @Override
-  public void readEntityCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
+  //@Override
+  public void readEntdityCollection(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
     UriInfoResource uriInfoResource = uriInfo.asUriInfoResource();
     LOGGER.debug("readEntityCollection " + uriInfoResource);
 
@@ -71,11 +64,11 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     EntityCollection entitySet = new EntityCollection();
 
-    ICommonsSet<IParticipantIdentifier> gr = ToopDirClient.getAllParticipantIDs();
-    gr.forEach(idp -> {
-      System.out.println(idp.getURIEncoded());
-      entitySet.getEntities().add(new ODATAParticipantIdentifier(idp).asEntity());
-    });
+    //Map<Integer, BusinessCardType> all = ToopDirClient.getAllParticipantIDs();
+//
+    //all.forEach((id, bt) -> {
+    //  entitySet.getEntities().add(ODataDirectoryHelper.asEntity(id, bt));
+    //});
 
     // Next we create a serializer based on the requested format. This could also be a custom format but we do not
     // support them in this example
@@ -100,6 +93,197 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
     response.setContent(serializedContent);
     response.setStatusCode(HttpStatusCode.OK.getStatusCode());
     response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+  }
+
+  public void readEntityCollection(ODataRequest request, ODataResponse response,
+                                   UriInfo uriInfo, ContentType responseFormat)
+      throws ODataApplicationException, SerializerException {
+
+    EdmEntitySet responseEdmEntitySet = null; // we'll need this to build the ContextURL
+    EntityCollection responseEntityCollection = null; // we'll need this to set the response body
+    EdmEntityType responseEdmEntityType = null;
+
+    // 1st retrieve the requested EntitySet from the uriInfo (representation of the parsed URI)
+    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+    int segmentCount = resourceParts.size();
+
+    UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
+    if (!(uriResource instanceof UriResourceEntitySet)) {
+      throw new ODataApplicationException("Only EntitySet is supported",
+          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+    }
+
+    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
+    EdmEntitySet startEdmEntitySet = uriResourceEntitySet.getEntitySet();
+
+    if (segmentCount == 1) { // this is the case for: DemoService/DemoService.svc/Categories
+      responseEdmEntitySet = startEdmEntitySet; // the response body is built from the first (and only) entitySet
+
+      // 2nd: fetch the data from backend for this requested EntitySetName and deliver as EntitySet
+      responseEntityCollection = ToopDirClient.readEntitySetData(startEdmEntitySet);
+    } else if (segmentCount == 2) { // in case of navigation: DemoService.svc/Categories(3)/Products
+
+      UriResource lastSegment = resourceParts.get(1); // in our example we don't support more complex URIs
+      if (lastSegment instanceof UriResourceNavigation) {
+        UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) lastSegment;
+        EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
+        EdmEntityType targetEntityType = edmNavigationProperty.getType();
+        if (!edmNavigationProperty.containsTarget()) {
+          // from Categories(1) to Products
+          responseEdmEntitySet = Util.getNavigationTargetEntitySet(startEdmEntitySet, edmNavigationProperty);
+        } else {
+          responseEdmEntitySet = startEdmEntitySet;
+          responseEdmEntityType = targetEntityType;
+        }
+
+        // 2nd: fetch the data from backend
+        // first fetch the entity where the first segment of the URI points to
+        List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+        // e.g. for Categories(3)/Products we have to find the single entity: Category with ID 3
+        Entity sourceEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
+        // error handling for e.g. DemoService.svc/Categories(99)/Products
+        if (sourceEntity == null) {
+          throw new ODataApplicationException("Entity not found.",
+              HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
+        }
+        // then fetch the entity collection where the entity navigates to
+        // note: we don't need to check uriResourceNavigation.isCollection(),
+        // because we are the EntityCollectionProcessor
+        responseEntityCollection = ToopDirClient.getRelatedEntityCollection(sourceEntity, targetEntityType);
+      }
+    } else { // this would be the case for e.g. Products(1)/Category/Products
+      throw new ODataApplicationException("Not supported",
+          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+    }
+
+    ContextURL contextUrl = null;
+    EdmEntityType edmEntityType = null;
+    // 3rd: create and configure a serializer
+    if (isContNav(uriInfo)) {
+      contextUrl = ContextURL.with().entitySetOrSingletonOrType(request.getRawODataPath()).build();
+      edmEntityType = responseEdmEntityType;
+    } else {
+      contextUrl = ContextURL.with().entitySet(responseEdmEntitySet).build();
+      edmEntityType = responseEdmEntitySet.getEntityType();
+    }
+    final String id = request.getRawBaseUri() + "/" + responseEdmEntitySet.getName();
+    EntityCollectionSerializerOptions opts = EntityCollectionSerializerOptions.with()
+        .contextURL(contextUrl).id(id).build();
+
+    ODataSerializer serializer = odata.createSerializer(responseFormat);
+    SerializerResult serializerResult = serializer.entityCollection(this.serviceMetadata, edmEntityType,
+        responseEntityCollection, opts);
+
+    // 4th: configure the response object: set the body, headers and status code
+    response.setContent(serializerResult.getContent());
+    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+  }
+
+
+  public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat)
+      throws ODataApplicationException, SerializerException {
+    EdmEntityType responseEdmEntityType = null; // we'll need this to build the ContextURL
+    Entity responseEntity = null; // required for serialization of the response body
+    EdmEntitySet responseEdmEntitySet = null; // we need this for building the contextUrl
+
+    // 1st step: retrieve the requested Entity: can be "normal" read operation, or navigation (to-one)
+    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+    int segmentCount = resourceParts.size();
+
+    UriResource uriResource = resourceParts.get(0); // in our example, the first segment is the EntitySet
+    if (!(uriResource instanceof UriResourceEntitySet)) {
+      throw new ODataApplicationException("Only EntitySet is supported",
+          HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ENGLISH);
+    }
+
+    UriResourceEntitySet uriResourceEntitySet = (UriResourceEntitySet) uriResource;
+    EdmEntitySet startEdmEntitySet = uriResourceEntitySet.getEntitySet();
+
+    // Analyze the URI segments
+    if (segmentCount == 1) { // no navigation
+      responseEdmEntityType = startEdmEntitySet.getEntityType();
+      responseEdmEntitySet = startEdmEntitySet; // since we have only one segment
+
+      // 2. step: retrieve the data from backend
+      List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+      responseEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
+    } else if (segmentCount == 2) { // navigation
+      UriResource navSegment = resourceParts.get(1); // in our example we don't support more complex URIs
+      if (navSegment instanceof UriResourceNavigation) {
+        UriResourceNavigation uriResourceNavigation = (UriResourceNavigation) navSegment;
+        EdmNavigationProperty edmNavigationProperty = uriResourceNavigation.getProperty();
+        responseEdmEntityType = edmNavigationProperty.getType();
+        if (!edmNavigationProperty.containsTarget()) {
+          // contextURL displays the last segment
+          responseEdmEntitySet = Util.getNavigationTargetEntitySet(startEdmEntitySet, edmNavigationProperty);
+        } else {
+          responseEdmEntitySet = startEdmEntitySet;
+        }
+
+
+        // 2nd: fetch the data from backend.
+        // e.g. for the URI: Products(1)/Category we have to find the correct Category entity
+        List<UriParameter> keyPredicates = uriResourceEntitySet.getKeyPredicates();
+        // e.g. for Products(1)/Category we have to find first the Products(1)
+        Entity sourceEntity = ToopDirClient.readEntityData(startEdmEntitySet, keyPredicates);
+
+        // now we have to check if the navigation is
+        // a) to-one: e.g. Products(1)/Category
+        // b) to-many with key: e.g. Categories(3)/Products(5)
+        // the key for nav is used in this case: Categories(3)/Products(5)
+        List<UriParameter> navKeyPredicates = uriResourceNavigation.getKeyPredicates();
+
+        if (navKeyPredicates.isEmpty()) { // e.g. DemoService.svc/Products(1)/Category
+          responseEntity = ToopDirClient.getRelatedEntity(sourceEntity, responseEdmEntityType);
+        } else { // e.g. DemoService.svc/Categories(3)/Products(5)
+          responseEntity = ToopDirClient.getRelatedEntity(sourceEntity, responseEdmEntityType, navKeyPredicates);
+        }
+      }
+    } else {
+      // this would be the case for e.g. Products(1)/Category/Products(1)/Category
+      throw new ODataApplicationException("Not supported", HttpStatusCode.NOT_IMPLEMENTED.getStatusCode(), Locale.ROOT);
+    }
+
+    if (responseEntity == null) {
+      // this is the case for e.g. DemoService.svc/Categories(4) or DemoService.svc/Categories(3)/Products(999)
+      throw new ODataApplicationException("Nothing found.", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ROOT);
+    }
+
+    // 3. serialize
+    ContextURL contextUrl = null;
+    if (
+
+        isContNav(uriInfo)) {
+      contextUrl = ContextURL.with().entitySetOrSingletonOrType(request.getRawODataPath()).
+          suffix(Suffix.ENTITY).build();
+    } else {
+      contextUrl = ContextURL.with().entitySet(responseEdmEntitySet).suffix(Suffix.ENTITY).build();
+    }
+
+    EntitySerializerOptions opts = EntitySerializerOptions.with().contextURL(contextUrl).build();
+
+    ODataSerializer serializer = this.odata.createSerializer(responseFormat);
+    SerializerResult serializerResult = serializer.entity(this.serviceMetadata, responseEdmEntityType, responseEntity, opts);
+
+    // 4. configure the response object
+    response.setContent(serializerResult.getContent());
+    response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+    response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+  }
+
+
+  private boolean isContNav(UriInfo uriInfo) {
+    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+    for (UriResource resourcePart : resourceParts) {
+      if (resourcePart instanceof UriResourceNavigation) {
+        UriResourceNavigation navResource = (UriResourceNavigation) resourcePart;
+        if (navResource.getProperty().containsTarget()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 
@@ -144,18 +328,67 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
   }
 
   @Override
-  public void readEntity(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-    LOGGER.debug("readEntity xxxxxxxxxxxxxxxxxxxxxxx " + uriInfo.toString());
-  }
-
-  @Override
   public void readPrimitiveValue(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
     LOGGER.debug("readPrimitiveValue " + uriInfo.toString());
+
   }
 
-  @Override
-  public void readPrimitive(ODataRequest request, ODataResponse response, UriInfo uriInfo, ContentType responseFormat) throws ODataApplicationException, ODataLibraryException {
-    LOGGER.debug("readPrimitive " + uriInfo.toString());
+  public void readPrimitive(ODataRequest request, ODataResponse response,
+                            UriInfo uriInfo, ContentType responseFormat)
+      throws ODataApplicationException, SerializerException {
+
+    // 1. Retrieve info from URI
+    // 1.1. retrieve the info about the requested entity set
+    List<UriResource> resourceParts = uriInfo.getUriResourceParts();
+    // Note: only in our example we can rely that the first segment is the EntitySet
+    UriResourceEntitySet uriEntityset = (UriResourceEntitySet) resourceParts.get(0);
+    EdmEntitySet edmEntitySet = uriEntityset.getEntitySet();
+    // the key for the entity
+    List<UriParameter> keyPredicates = uriEntityset.getKeyPredicates();
+
+    // 1.2. retrieve the requested (Edm) property
+    // the last segment is the Property
+    UriResourceProperty uriProperty = (UriResourceProperty) resourceParts.get(resourceParts.size() - 1);
+    EdmProperty edmProperty = uriProperty.getProperty();
+    String edmPropertyName = edmProperty.getName();
+    // in our example, we know we have only primitive types in our model
+    EdmPrimitiveType edmPropertyType = (EdmPrimitiveType) edmProperty.getType();
+
+    // 2. retrieve data from backend
+    // 2.1. retrieve the entity data, for which the property has to be read
+    Entity entity = ToopDirClient.readEntityData(edmEntitySet, keyPredicates);
+    if (entity == null) { // Bad request
+      throw new ODataApplicationException("Entity not found",
+          HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+    }
+
+    // 2.2. retrieve the property data from the entity
+    Property property = entity.getProperty(edmPropertyName);
+    if (property == null) {
+      throw new ODataApplicationException("Property not found",
+          HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+    }
+
+    // 3. serialize
+    Object value = property.getValue();
+    if (value != null) {
+      // 3.1. configure the serializer
+      ODataSerializer serializer = odata.createSerializer(responseFormat);
+
+      ContextURL contextUrl = ContextURL.with().entitySet(edmEntitySet).navOrPropertyPath(edmPropertyName).build();
+      PrimitiveSerializerOptions options = PrimitiveSerializerOptions.with().contextURL(contextUrl).build();
+      // 3.2. serialize
+      SerializerResult serializerResult = serializer.primitive(serviceMetadata, edmPropertyType, property, options);
+      InputStream propertyStream = serializerResult.getContent();
+
+      // 4. configure the response object
+      response.setContent(propertyStream);
+      response.setStatusCode(HttpStatusCode.OK.getStatusCode());
+      response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+    } else {
+      // in case there's no value for the property, we can skip the serialization
+      response.setStatusCode(HttpStatusCode.NO_CONTENT.getStatusCode());
+    }
   }
 
   @Override
