@@ -38,22 +38,11 @@ public class EdmStructure {
 
   public static final CsdlEntitySet ES_BusinessCards = new CsdlEntitySet()
       .setName(NAME_BusinessCards)
-      .setType(FQN_BusinessCard)
-      .setNavigationPropertyBindings(Arrays.asList(
-          new CsdlNavigationPropertyBinding()
-              .setPath(NAME_DoctypeIDs)
-              .setTarget(NAME_DoctypeIDs)));
+      .setType(FQN_BusinessCard);
 
   public static final CsdlEntitySet ES_DoctypeIDS = new CsdlEntitySet()
       .setName(NAME_DoctypeIDs)
-      .setType(FQN_DoctypeID)
-      .setNavigationPropertyBindings(
-          Arrays.asList(
-              new CsdlNavigationPropertyBinding()
-                  .setPath(NAME_BusinessCards)
-                  .setTarget(NAME_BusinessCards)
-          )
-      );
+      .setType(FQN_DoctypeID);
 
   public static final CsdlEntityType ET_BusinessCard = new CsdlEntityType()
       .setName(NAME_BusinessCard)
@@ -65,23 +54,18 @@ public class EdmStructure {
       .setNavigationProperties(Arrays.asList(
           new CsdlNavigationProperty()
               .setName(NAME_DoctypeIDs)
+              .setContainsTarget(true)
+              .setCollection(true)
               .setType(FQN_DoctypeID)
-              .setNullable(Boolean.TRUE)
-              .setPartner(NAME_BusinessCards)));
+              .setNullable(Boolean.TRUE)));
 
   public static final CsdlEntityType ET_DoctypeID = new CsdlEntityType()
       .setName(NAME_DoctypeID)
-      .setKey(Arrays.asList(new CsdlPropertyRef().setName("Id")))
+      //.setKey(Arrays.asList(new CsdlPropertyRef().setName("Id")))
       .setProperties(Arrays.asList(
-          new CsdlProperty().setName("Id").setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName()),
+          //new CsdlProperty().setName("Id").setType(EdmPrimitiveTypeKind.Int32.getFullQualifiedName()),
           new CsdlProperty().setName("scheme").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName()),
-          new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())))
-      .setNavigationProperties(Arrays.asList(
-          new CsdlNavigationProperty()
-              .setName(NAME_BusinessCards)
-              .setType(FQN_BusinessCard)
-              .setNullable(Boolean.TRUE)
-              .setPartner(NAME_DoctypeIDs)));
+          new CsdlProperty().setName("value").setType(EdmPrimitiveTypeKind.String.getFullQualifiedName())));
 
   public static final CsdlComplexType CT_Participant = new CsdlComplexType().setName(NAME_Participant).setProperties(
       Arrays.asList(

@@ -38,8 +38,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ToopDirClient {
   private static final int MAX_RESULTS_PER_PAGE = 100;
@@ -132,31 +132,39 @@ public class ToopDirClient {
     return ret;
   }
 
-  private static RootType rootType;
+  private static final Map<Integer, BusinessCardType> businessCards = new LinkedHashMap<>();
+  private static final Map<Integer, IDType> docTypeMap = new LinkedHashMap<>();
 
   public static ICommonsSet<IParticipantIdentifier> getAllParticipantIDs() {
-    //ObjectFactory of = new ObjectFactory();
-    //.
 
-    //return null;
-
-    if (rootType == null) {
+    if (businessCards.size() == 0) {
       try {
         JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
         Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
         final JAXBElement<RootType> unmarshal = (JAXBElement<RootType>) jaxbUnmarshaller.unmarshal(new URL(TOOP_DIR_EXPORT_URL));
-        rootType = unmarshal.getValue();
+        RootType rootType = unmarshal.getValue();
+
+        final AtomicInteger idEr = new AtomicInteger(0);
+        final AtomicInteger docEr = new AtomicInteger(0);
+        //process the entities
+        rootType.getBusinesscard().forEach(businessCardType -> {
+          businessCards.put(idEr.getAndIncrement(), businessCardType);
+
+          businessCardType.getDoctypeid().forEach(idType -> {
+            docTypeMap.put(docEr.getAndIncrement(), idType);
+          });
+        });
+
       } catch (Exception ex) {
         throw new IllegalStateException("Sorry Cannot read directory.", ex);
       }
     }
 
     CommonsHashSet<IParticipantIdentifier> set = new CommonsHashSet<>();
-    rootType.getBusinesscard().forEach(bc -> {
-
-      set.add(new SimpleParticipantIdentifier(bc.getParticipant().getScheme(),
-          bc.getParticipant().getValue()));
+    businessCards.forEach((key, value) -> {
+      set.add(new SimpleParticipantIdentifier(value.getParticipant().getScheme(),
+          value.getParticipant().getValue()));
 
     });
 

@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://www.peppol.eu/schema/pd/businesscard-generic/201907/" version="2" creationdt="2019-12-16T21:56:32.354Z">
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9945:pl" />
+    <entity countrycode="PL">
+      <name name="PL TOOP Pilot DC" />
+      <id scheme="DataSubjectIdentifierScheme" value="VAT" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.request.registeredorganization-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.request.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:ESPD-ESIDIS" />
+    <entity countrycode="GR">
+      <name name="Greece Testing " />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:IT-ANAC" />
+    <entity countrycode="IT">
+      <name name="ANAC Italian Pilot" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:bolagsverket1" />
+    <entity countrycode="SE">
+      <name name="Toop Pilot Sweden" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:pl" />
+    <entity countrycode="PL">
+      <name name="PL TOOP Pilot DC" />
+      <id scheme="DataSubjectIdentifierScheme" value="VAT" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.request.registeredorganization-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:slovenia1" />
+    <entity countrycode="SI">
+      <name name="Slovenia TOOP" />
+      <geoinfo>Ljubljana</geoinfo>
+      <id scheme="DataSubjectIdentifierScheme" value="VAT" />
+      <website>https://www.medius.si</website>
+      <contact email="ziga.ciglar@medius.si" name="Ziga Ciglar" phonenumber="" type="Technical" />
+      <additionalinfo>Slovenia TOOP Pilot Project</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.request.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Response##urn:eu.toop.response.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization-list::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:slovenia2" />
+    <entity countrycode="FM">
+      <name name="Slovenia TOOP2" />
+      <geoinfo>Ljubljana</geoinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.request.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Response##urn:eu.toop.response.registeredorganization::1.10" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:test" />
+    <entity countrycode="RO">
+      <name name="ONRC" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:testonia-dev" />
+    <entity countrycode="TF">
+      <name name="Toop Playground Testonia-dev" />
+      <geoinfo>Country code GF for Testonia/dev</geoinfo>
+      <id scheme="DUNS" value="2345670" />
+      <id scheme="GLN" value="12345670" />
+      <id scheme="Test" value="125" />
+      <contact email="testonia@helger.com" name="Philip Helger" phonenumber="" type="Support-dev" />
+      <additionalinfo>Test number 4/dev</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.request.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Response##urn:eu.toop.response.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9915:test3" />
+    <entity countrycode="DK">
+      <name name="Test Name Registered Organization" />
+      <geoinfo>And parts of it in Austria</geoinfo>
+      <additionalinfo>Additional Information</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-docid" value="maritime:ShipCertificate:request" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9907:02313821007" />
+    <entity countrycode="IT">
+      <name name="Toop Pilot Italy IC" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.response.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.request.registeredorganization::1.10" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:freedonia" />
+    <entity countrycode="GF">
+      <name name="Freedonia ACC" />
+      <geoinfo>Country code GF for Freedonia ACC</geoinfo>
+      <contact email="freedonia@helger.com" name="Philip Helger" phonenumber="" type="Support" />
+      <additionalinfo>Test number 3</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Response##urn:eu.toop.response.registeredorganization::1.10" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p10::Request##urn:eu.toop.request.registeredorganization::1.10" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:freedonia-dev" />
+    <entity countrycode="PF">
+      <name name="Freedonia DEV" />
+      <geoinfo>Country code PF for Freedonia DEV</geoinfo>
+      <contact email="freedonia@helger.com" name="Philip Helger" phonenumber="" type="Support-dev" />
+      <additionalinfo>Test number 3/dev</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:elonia" />
+    <entity countrycode="SV">
+      <name name="Elonia ACC" />
+      <geoinfo>Country code SV for Elonia ACC</geoinfo>
+      <id scheme="DataSubjectIdentifierScheme " value="DUNS" />
+      <id scheme="DataSubjectIdentifierScheme " value="GLN" />
+      <id scheme="DataSubjectIdentifierScheme " value="Kennziffer" />
+      <id scheme="DataSubjectIdentifierScheme " value="VAT" />
+      <additionalinfo>Guild Wars continent</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:elonia-dev" />
+    <entity countrycode="GQ">
+      <name name="Elonia DEV" />
+      <geoinfo>Country code GQ for Elonia DEV</geoinfo>
+      <id scheme="DataSubjectIdentifierScheme " value="GLN" />
+      <id scheme="DataSubjectIdentifierScheme " value="VAT" />
+      <additionalinfo>Guild Wars continent/dev</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:dktest" />
+    <entity countrycode="DK">
+      <name name="TOOP Test PA3 Denmark" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9931:EE100220188" />
+    <entity countrycode="EE">
+      <name name="Estonian Maritime Administration" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9915:brc" />
+    <entity countrycode="NO">
+      <name name="Bronnoysund Register Centre" />
+      <contact email="Rolf.dramdal@capgemini.com" name="Rolf Dramdal" phonenumber="+4747305228" type="Technical" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9930:167064991" />
+    <entity countrycode="DE">
+      <name name="Pöyry Deutschland GmbH" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.evidence::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9930:153901674" />
+    <entity countrycode="DE">
+      <name name="University of Koblenz (on behalf of MRN)" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.evidence::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:slovakia" />
+    <entity countrycode="SK">
+      <name name="Toop pilot slovakia" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9915:nma" />
+    <entity countrycode="NO">
+      <name name="NMA" />
+      <id scheme="iso6523-actorid-upis" value="9915:nma" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9999:test1lv" />
+    <entity countrycode="LV">
+      <name name="LJA-test" />
+      <geoinfo>Riga, Latvia</geoinfo>
+      <id scheme="iso6523-actorid-upis" value="9999:test1lv" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="9915:tooptest" />
+    <entity countrycode="AX">
+      <name name="AT TOOP Pilot DC" />
+      <id scheme="DataProviderType" value="abc" />
+      <id scheme="DataSubjectIdentifierScheme" value="Scheme A" />
+      <id scheme="DataSubjectIdentifierScheme" value="Scheme B" />
+    </entity>
+    <entity countrycode="AT">
+      <name name="AT TOOP Pilot DP" />
+      <geoinfo>BRZ, Vienna, Europe, World</geoinfo>
+      <id scheme="DataProviderType" value="def" />
+      <additionalinfo>Austrian Test endpoint for TOOP DC and DP.&#xD;
+Hosted by BRZ.</additionalinfo>
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.registeredorganization::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.registeredorganization::1.40" />
+  </businesscard>
+  <businesscard>
+    <participant scheme="iso6523-actorid-upis" value="0037:FI10948874" />
+    <entity countrycode="FI">
+      <name name="Traficom" />
+    </entity>
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Request##urn:eu.toop.request.shipcertificate-list::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.crewcertificate::1.40" />
+    <doctypeid scheme="toop-doctypeid-qns" value="urn:eu:toop:ns:dataexchange-1p40::Response##urn:eu.toop.response.shipcertificate::1.40" />
+  </businesscard>
+</root>
