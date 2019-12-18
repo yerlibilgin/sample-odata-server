@@ -16,11 +16,15 @@ import org.apache.olingo.server.api.serializer.*;
 import org.apache.olingo.server.api.uri.*;
 import org.apache.olingo.server.api.uri.queryoption.ExpandItem;
 import org.apache.olingo.server.api.uri.queryoption.ExpandOption;
+import org.apache.olingo.server.api.uri.queryoption.FilterOption;
 import org.apache.olingo.server.api.uri.queryoption.SelectOption;
+import org.apache.olingo.server.api.uri.queryoption.expression.Expression;
+import org.apache.olingo.server.api.uri.queryoption.expression.ExpressionVisitException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,6 +68,43 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     // 2nd: fetch the data from backend for this requested EntitySetName
     EntityCollection entityCollection = ToopDirClient.readEntitySetData(edmEntitySet);
+
+    FilterOption filterOption = uriInfo.getFilterOption();
+    if(filterOption != null) {
+      // Apply $filter system query option
+      try {
+        List<Entity> entityList = entityCollection.getEntities();
+        Iterator<Entity> entityIterator = entityList.iterator();
+
+        // Evaluate the expression for each entity
+        // If the expression is evaluated to "true", keep the entity otherwise remove it from the entityList
+        while (entityIterator.hasNext()) {
+          // To evaluate the the expression, create an instance of the Filter Expression Visitor and pass
+          // the current entity to the constructor
+          Entity currentEntity = entityIterator.next();
+          Expression filterExpression = filterOption.getExpression();
+          FilterExpressionVisitor expressionVisitor = new FilterExpressionVisitor(currentEntity);
+
+          // Start evaluating the expression
+          Object visitorResult = filterExpression.accept(expressionVisitor);
+
+          // The result of the filter expression must be of type Edm.Boolean
+          if(visitorResult instanceof Boolean) {
+            if(!Boolean.TRUE.equals(visitorResult)) {
+              // The expression evaluated to false (or null), so we have to remove the currentEntity from entityList
+              entityIterator.remove();
+            }
+          } else {
+            throw new ODataApplicationException("A filter expression must evaulate to type Edm.Boolean",
+                HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+          }
+        }
+
+      } catch (ExpressionVisitException e) {
+        throw new ODataApplicationException("Exception in filter evaluation",
+            HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+      }
+    }
 
     // 3rd: apply system query options
     SelectOption selectOption = uriInfo.getSelectOption();
@@ -130,7 +171,6 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
         }
       }
     }
-
     // 4th: serialize
     EdmEntityType edmEntityType = edmEntitySet.getEntityType();
     // we need the property names of the $select, in order to build the context URL
@@ -339,25 +379,25 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     // 1.2. retrieve the requested (Edm) property
     // the last segment is the Property
-    UriResourceProperty uriProperty = (UriResourceProperty) resourceParts.get(resourceParts.size() - 1);
+    UriResourceProperty uriProperty = (UriResourceProperty)resourceParts.get(resourceParts.size() -1);
     EdmProperty edmProperty = uriProperty.getProperty();
     String edmPropertyName = edmProperty.getName();
     // in our example, we know we have only primitive types in our model
     EdmPrimitiveType edmPropertyType = (EdmPrimitiveType) edmProperty.getType();
 
+
     // 2. retrieve data from backend
     // 2.1. retrieve the entity data, for which the property has to be read
     Entity entity = ToopDirClient.readEntityData(edmEntitySet, keyPredicates);
     if (entity == null) { // Bad request
-      throw new ODataApplicationException("Entity not found",
-          HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+      throw new ODataApplicationException("Entity not found", HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
     }
 
     // 2.2. retrieve the property data from the entity
     Property property = entity.getProperty(edmPropertyName);
     if (property == null) {
-      throw new ODataApplicationException("Property not found",
-          HttpStatusCode.NOT_FOUND.getStatusCode(), Locale.ENGLISH);
+      throw new ODataApplicationException("Property not found", HttpStatusCode.NOT_FOUND.getStatusCode(),
+          Locale.ENGLISH);
     }
 
     // 3. serialize
@@ -372,7 +412,7 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
       SerializerResult serializerResult = serializer.primitive(serviceMetadata, edmPropertyType, property, options);
       InputStream propertyStream = serializerResult.getContent();
 
-      // 4. configure the response object
+      //4. configure the response object
       response.setContent(propertyStream);
       response.setStatusCode(HttpStatusCode.OK.getStatusCode());
       response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
