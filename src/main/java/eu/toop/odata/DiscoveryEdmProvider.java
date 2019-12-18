@@ -1,6 +1,5 @@
-package eu.toop;
+package eu.toop.odata;
 
-import eu.toop.model.entity.EdmStructure;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;
 import org.apache.olingo.commons.api.edm.provider.*;
 import org.slf4j.Logger;

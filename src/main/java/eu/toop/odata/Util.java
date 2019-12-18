@@ -16,31 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package eu.toop;
+package eu.toop.odata;
+
+import org.apache.olingo.commons.api.data.Entity;
+import org.apache.olingo.commons.api.data.EntityCollection;
+import org.apache.olingo.commons.api.data.Property;
+import org.apache.olingo.commons.api.data.ValueType;
+import org.apache.olingo.commons.api.edm.*;
+import org.apache.olingo.commons.api.ex.ODataRuntimeException;
+import org.apache.olingo.commons.api.http.HttpStatusCode;
+import org.apache.olingo.server.api.ODataApplicationException;
+import org.apache.olingo.server.api.uri.UriParameter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Locale;
-
-import eu.toop.model.entity.EdmStructure;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.olingo.commons.api.data.Entity;
-import org.apache.olingo.commons.api.data.EntityCollection;
-import org.apache.olingo.commons.api.data.Property;
-import org.apache.olingo.commons.api.data.ValueType;
-import org.apache.olingo.commons.api.edm.EdmBindingTarget;
-import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
-import org.apache.olingo.commons.api.edm.EdmNavigationProperty;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveType;
-import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeException;
-import org.apache.olingo.commons.api.edm.EdmProperty;
-import org.apache.olingo.commons.api.edm.EdmType;
-import org.apache.olingo.commons.api.ex.ODataRuntimeException;
-import org.apache.olingo.commons.api.http.HttpStatusCode;
-import org.apache.olingo.server.api.ODataApplicationException;
-import org.apache.olingo.server.api.uri.UriParameter;
 
 public class Util {
 
@@ -159,14 +150,12 @@ public class Util {
     return new Property(null, name, ValueType.PRIMITIVE, value);
   }
 
-  public static final URI createId() {
+  public static final URI createId(String name) {
     try {
-      URIBuilder uriBuilder = new URIBuilder();
-      URI uri = new URI(EdmStructure.NAME_BusinessCards + "(Id)");
-      System.out.println("uri: " + uri);
+      URI uri = new URI(name + "(Id)");
       return uri;
     } catch (URISyntaxException e) {
-      throw new ODataRuntimeException("Unable to create id for entity: " + EdmStructure.NAME_BusinessCards, e);
+      throw new ODataRuntimeException("Unable to create id for entity: " + name, e);
     }
   }
 }

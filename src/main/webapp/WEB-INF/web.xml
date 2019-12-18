@@ -30,7 +30,7 @@
 
 	<servlet>
 		<servlet-name>DSDServlet</servlet-name>
-		<servlet-class>eu.toop.DSDServlet</servlet-class>
+		<servlet-class>eu.toop.odata.DSDServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 

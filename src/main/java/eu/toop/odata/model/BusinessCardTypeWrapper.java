@@ -1,8 +1,8 @@
-package eu.toop.model;
+package eu.toop.odata.model;
 
 import eu.peppol.schema.pd.businesscard_generic._201907.BusinessCardType;
-import eu.toop.Util;
-import eu.toop.model.entity.EdmStructure;
+import eu.toop.odata.Util;
+import eu.toop.odata.EdmStructure;
 import org.apache.olingo.commons.api.data.ComplexValue;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.Property;
@@ -21,7 +21,7 @@ public class BusinessCardTypeWrapper extends Entity {
     this.businessCardType = businessCardType;
 
     setType(EdmStructure.FQN_BusinessCard.getFullQualifiedNameAsString());
-    setId(Util.createId());
+    setId(Util.createId(EdmStructure.NAME_BusinessCards));
     addProperty(Util.createPrimitive("Id", id));
 
     ComplexValue complexValue = new ComplexValue();

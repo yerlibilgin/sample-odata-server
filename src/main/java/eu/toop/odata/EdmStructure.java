@@ -1,4 +1,4 @@
-package eu.toop.model.entity;
+package eu.toop.odata;
 
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.apache.olingo.commons.api.edm.FullQualifiedName;

@@ -1,7 +1,6 @@
-package eu.toop;
+package eu.toop.odata;
 
 
-import eu.toop.model.ToopDirClient;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.data.*;
 import org.apache.olingo.commons.api.data.ContextURL.Suffix;
@@ -71,39 +70,7 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
 
     FilterOption filterOption = uriInfo.getFilterOption();
     if(filterOption != null) {
-      // Apply $filter system query option
-      try {
-        List<Entity> entityList = entityCollection.getEntities();
-        Iterator<Entity> entityIterator = entityList.iterator();
-
-        // Evaluate the expression for each entity
-        // If the expression is evaluated to "true", keep the entity otherwise remove it from the entityList
-        while (entityIterator.hasNext()) {
-          // To evaluate the the expression, create an instance of the Filter Expression Visitor and pass
-          // the current entity to the constructor
-          Entity currentEntity = entityIterator.next();
-          Expression filterExpression = filterOption.getExpression();
-          FilterExpressionVisitor expressionVisitor = new FilterExpressionVisitor(currentEntity);
-
-          // Start evaluating the expression
-          Object visitorResult = filterExpression.accept(expressionVisitor);
-
-          // The result of the filter expression must be of type Edm.Boolean
-          if(visitorResult instanceof Boolean) {
-            if(!Boolean.TRUE.equals(visitorResult)) {
-              // The expression evaluated to false (or null), so we have to remove the currentEntity from entityList
-              entityIterator.remove();
-            }
-          } else {
-            throw new ODataApplicationException("A filter expression must evaulate to type Edm.Boolean",
-                HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
-          }
-        }
-
-      } catch (ExpressionVisitException e) {
-        throw new ODataApplicationException("Exception in filter evaluation",
-            HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
-      }
+      applyFilterOption(entityCollection, filterOption);
     }
 
     // 3rd: apply system query options
@@ -156,6 +123,11 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
           if (edmNavigationProperty.isCollection()) { // in case of Categories/$expand=Products
             // fetch the data for the $expand (to-many navigation) from backend
             EntityCollection expandEntityCollection = ToopDirClient.getRelatedEntityCollection(entity, expandEdmEntityType);
+
+            if (expandItem.getFilterOption() != null){
+              applyFilterOption(expandEntityCollection, expandItem.getFilterOption());
+            }
+
             link.setInlineEntitySet(expandEntityCollection);
             //link.setHref(expandEntityCollection.getId().toASCIIString());
           } else { // in case of Products?$expand=Category
@@ -193,6 +165,42 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
     response.setContent(serializerResult.getContent());
     response.setStatusCode(HttpStatusCode.OK.getStatusCode());
     response.setHeader(HttpHeader.CONTENT_TYPE, responseFormat.toContentTypeString());
+  }
+
+  private void applyFilterOption(EntityCollection entityCollection, FilterOption filterOption) throws ODataApplicationException {
+    // Apply $filter system query option
+    try {
+      List<Entity> entityList = entityCollection.getEntities();
+      Iterator<Entity> entityIterator = entityList.iterator();
+
+      // Evaluate the expression for each entity
+      // If the expression is evaluated to "true", keep the entity otherwise remove it from the entityList
+      while (entityIterator.hasNext()) {
+        // To evaluate the the expression, create an instance of the Filter Expression Visitor and pass
+        // the current entity to the constructor
+        Entity currentEntity = entityIterator.next();
+        Expression filterExpression = filterOption.getExpression();
+        FilterExpressionVisitor expressionVisitor = new FilterExpressionVisitor(currentEntity);
+
+        // Start evaluating the expression
+        Object visitorResult = filterExpression.accept(expressionVisitor);
+
+        // The result of the filter expression must be of type Edm.Boolean
+        if(visitorResult instanceof Boolean) {
+          if(!Boolean.TRUE.equals(visitorResult)) {
+            // The expression evaluated to false (or null), so we have to remove the currentEntity from entityList
+            entityIterator.remove();
+          }
+        } else {
+          throw new ODataApplicationException("A filter expression must evaulate to type Edm.Boolean",
+              HttpStatusCode.BAD_REQUEST.getStatusCode(), Locale.ENGLISH);
+        }
+      }
+
+    } catch (ExpressionVisitException e) {
+      throw new ODataApplicationException("Exception in filter evaluation",
+          HttpStatusCode.INTERNAL_SERVER_ERROR.getStatusCode(), Locale.ENGLISH);
+    }
   }
 
 
@@ -351,10 +359,6 @@ public class DiscoveryODataWrapper implements EntityCollectionProcessor, EntityP
      */
 
     final UriResourceEntitySet uriResource = (UriResourceEntitySet) resourcePaths.get(0);
-
-    System.out.println("Get entity set: " + uriResource.getEntitySet());
-    System.out.println("Get entity set: " + uriResource.getEntityType());
-    System.out.println("Get entity set: " + uriResource.getKeyPredicates().stream().map(mapper -> mapper.getAlias()));
     return uriResource.getEntitySet();
   }
 

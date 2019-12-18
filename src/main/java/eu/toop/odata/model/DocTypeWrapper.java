@@ -1,8 +1,8 @@
-package eu.toop.model;
+package eu.toop.odata.model;
 
 import eu.peppol.schema.pd.businesscard_generic._201907.IDType;
-import eu.toop.Util;
-import eu.toop.model.entity.EdmStructure;
+import eu.toop.odata.Util;
+import eu.toop.odata.EdmStructure;
 import org.apache.olingo.commons.api.data.Entity;
 
 public class DocTypeWrapper extends Entity {
@@ -16,7 +16,7 @@ public class DocTypeWrapper extends Entity {
   public DocTypeWrapper(int docId, IDType idType) {
     this.id = docId;
 
-    this.setId(Util.createId());
+    this.setId(Util.createId(EdmStructure.NAME_BusinessCards));
     this.scheme = idType.getScheme();
     this.value = idType.getValue();
 

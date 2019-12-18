@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package eu.toop.model;
+package eu.toop.odata;
 
 import com.helger.commons.collection.impl.CommonsHashSet;
 import com.helger.commons.collection.impl.ICommonsSet;
@@ -31,8 +31,8 @@ import com.helger.peppolid.IParticipantIdentifier;
 import com.helger.peppolid.simple.participant.SimpleParticipantIdentifier;
 import eu.peppol.schema.pd.businesscard_generic._201907.ObjectFactory;
 import eu.peppol.schema.pd.businesscard_generic._201907.RootType;
-import eu.toop.Util;
-import eu.toop.model.entity.EdmStructure;
+import eu.toop.odata.model.BusinessCardTypeWrapper;
+import eu.toop.odata.model.DocTypeWrapper;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.olingo.commons.api.data.Entity;
 import org.apache.olingo.commons.api.data.EntityCollection;
@@ -55,8 +55,8 @@ public class ToopDirClient {
   private static final int MAX_RESULTS_PER_PAGE = 100;
 
   private static final String m_sBaseURL = "http://directory.acc.exchange.toop.eu";
-  //private static final String TOOP_DIR_EXPORT_URL = "http://directory.acc.exchange.toop.eu/export/businesscards";
-  private static final String TOOP_DIR_EXPORT_URL = "file:./directory-export-business-cards.xml";
+  private static final String TOOP_DIR_EXPORT_URL = "http://directory.acc.exchange.toop.eu/export/businesscards";
+  //private static final String TOOP_DIR_EXPORT_URL = "file:./directory-export-business-cards.xml";
 
   private static final Map<Integer, BusinessCardTypeWrapper> businessCards = new LinkedHashMap<>();
   private static final Map<Integer, DocTypeWrapper> docTypeMap = new LinkedHashMap<>();

@@ -1,4 +1,4 @@
-package eu.toop;
+package eu.toop.odata;
 
 import org.apache.olingo.server.api.OData;
 import org.apache.olingo.server.api.ODataHttpHandler;
